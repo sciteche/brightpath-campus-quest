@@ -13,7 +13,10 @@ export function SectionContent({ section }: { section: CampusSectionId }) {
               <p>{course.level}</p>
               <small>{course.detail}</small>
             </div>
-            <p className="course-price"><strong>{getMonthlyFee(course.price)}</strong><span>/ month</span></p>
+            <p className="course-price">
+              <strong>{getMonthlyFee(course.price)}</strong>
+              <span>/ month</span>
+            </p>
           </article>
         ))}
       </div>
@@ -38,7 +41,9 @@ export function SectionContent({ section }: { section: CampusSectionId }) {
       <div className="teacher-list">
         {TEACHERS.map((teacher, index) => (
           <article className="teacher-row" key={teacher.name}>
-            <span className={`teacher-avatar teacher-avatar-${index + 1}`} aria-hidden="true">{teacher.initials}</span>
+            <span className={`teacher-avatar teacher-avatar-${index + 1}`} aria-hidden="true">
+              {teacher.initials}
+            </span>
             <div>
               <h3>{teacher.name}</h3>
               <p>{teacher.subject}</p>
@@ -55,14 +60,20 @@ export function SectionContent({ section }: { section: CampusSectionId }) {
         <table className="fee-table">
           <caption>Monthly tuition</caption>
           <thead>
-            <tr><th scope="col">Course</th><th scope="col">Class</th><th scope="col">Fee</th></tr>
+            <tr>
+              <th scope="col">Course</th>
+              <th scope="col">Class</th>
+              <th scope="col">Fee</th>
+            </tr>
           </thead>
           <tbody>
             {COURSES.map((course) => (
               <tr key={course.name}>
                 <th scope="row">{course.name}</th>
                 <td>{course.level}</td>
-                <td>{getMonthlyFee(course.price)} <span>/ month</span></td>
+                <td>
+                  {getMonthlyFee(course.price)} <span>/ month</span>
+                </td>
               </tr>
             ))}
             <tr className="fee-free-row">

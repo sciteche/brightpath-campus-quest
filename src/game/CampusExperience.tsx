@@ -5,6 +5,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type MutableRefObject,
@@ -52,7 +53,14 @@ const CAMPUS_COLORS = {
 } as const;
 
 const PLAYER_KEYS = new Set([
-  "KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+  "KeyW",
+  "KeyA",
+  "KeyS",
+  "KeyD",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
 ]);
 
 function resolveThemeColor(value: string, context: CanvasRenderingContext2D) {
@@ -77,7 +85,10 @@ function useScenePalette() {
     for (const name of colorNames) {
       const token = CAMPUS_COLORS[name];
       const value = styles.getPropertyValue(token).trim();
-      nextPalette[name] = resolveThemeColor(value || styles.getPropertyValue("--background").trim(), context);
+      nextPalette[name] = resolveThemeColor(
+        value || styles.getPropertyValue("--background").trim(),
+        context,
+      );
     }
     setPalette(nextPalette);
   }, []);
@@ -133,10 +144,10 @@ function SceneContents({
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
-        shadow-camera-left={-13}
-        shadow-camera-right={13}
-        shadow-camera-top={13}
-        shadow-camera-bottom={-13}
+        shadow-camera-left={-14}
+        shadow-camera-right={14}
+        shadow-camera-top={14}
+        shadow-camera-bottom={-14}
         shadow-bias={-0.00015}
         shadow-radius={4}
       />
@@ -145,12 +156,14 @@ function SceneContents({
       <CampusPaths palette={palette} />
       <CampusGarden palette={palette} />
       <EntranceArch palette={palette} />
-      {CAMPUS_BUILDINGS.map((building) => (
+      {CAMPUS_BUILDINGS.map((building, index) => (
         <CampusBuildingModel
           key={building.id}
           building={building}
           palette={palette}
           interactive={!isClassic}
+          reduceMotion={reduceMotion}
+          pulsePhase={index * 1.35}
           onSelect={onSelectBuilding}
         />
       ))}
@@ -186,7 +199,8 @@ function FollowCamera({
     lookAt.current.set(position.x, 0.65, position.z - 2.2);
     camera.lookAt(lookAt.current);
     if (camera instanceof THREE.OrthographicCamera) {
-      const worldSpan = size.width < 640 ? 26 : 22;
+      // Smaller span = closer camera, so the campus fills more of the stage.
+      const worldSpan = size.width < 640 ? 20 : 16.5;
       const zoom = Math.min(size.width, size.height) / worldSpan;
       if (Math.abs(camera.zoom - zoom) > 0.01) {
         camera.zoom = zoom;
@@ -209,15 +223,15 @@ function Island({ palette }: { palette: ScenePalette }) {
   return (
     <group>
       <mesh position={[0, -0.54, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[9.55, 8.8, 0.86, 48]} />
+        <cylinderGeometry args={[10.45, 9.6, 0.86, 48]} />
         <meshStandardMaterial color={palette.earth} roughness={0.9} />
       </mesh>
       <mesh position={[0, -0.98, 0]} castShadow>
-        <cylinderGeometry args={[8.75, 7.5, 0.38, 40]} />
+        <cylinderGeometry args={[9.55, 8.2, 0.38, 40]} />
         <meshStandardMaterial color={palette.wood} roughness={0.94} />
       </mesh>
       <mesh position={[0, -0.08, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[9.4, 48]} />
+        <circleGeometry args={[10.3, 48]} />
         <meshStandardMaterial color={palette.grass} roughness={0.94} />
       </mesh>
       {patches.map(([x, z, size]) => (
@@ -228,7 +242,7 @@ function Island({ palette }: { palette: ScenePalette }) {
       ))}
       {Array.from({ length: 8 }, (_, index) => {
         const angle = (index / 8) * Math.PI * 2;
-        const radius = 8.8;
+        const radius = 9.65;
         const x = Math.cos(angle) * radius;
         const z = Math.sin(angle) * radius;
         return (
@@ -286,7 +300,9 @@ function CampusPaths({ palette }: { palette: ScenePalette }) {
 
   return (
     <group>
-      {routes.map((route, index) => <PathSegment key={index} {...route} palette={palette} />)}
+      {routes.map((route, index) => (
+        <PathSegment key={index} {...route} palette={palette} />
+      ))}
       <mesh position={[0, 0.04, -0.05]} receiveShadow>
         <cylinderGeometry args={[1.1, 1.1, 0.08, 32]} />
         <meshStandardMaterial color={palette.path} roughness={0.85} />
@@ -295,7 +311,17 @@ function CampusPaths({ palette }: { palette: ScenePalette }) {
   );
 }
 
-function Tree({ x, z, scale, palette }: { x: number; z: number; scale: number; palette: ScenePalette }) {
+function Tree({
+  x,
+  z,
+  scale,
+  palette,
+}: {
+  x: number;
+  z: number;
+  scale: number;
+  palette: ScenePalette;
+}) {
   return (
     <group position={[x, 0, z]} scale={scale}>
       <mesh position={[0, 0.48, 0]} castShadow receiveShadow>
@@ -319,7 +345,11 @@ function LampPost({ x, z, palette }: { x: number; z: number; palette: ScenePalet
       </mesh>
       <mesh position={[0, 1.59, 0]} castShadow>
         <boxGeometry args={[0.33, 0.17, 0.33]} />
-        <meshStandardMaterial color={palette.yellow} emissive={palette.yellow} emissiveIntensity={0.28} />
+        <meshStandardMaterial
+          color={palette.yellow}
+          emissive={palette.yellow}
+          emissiveIntensity={0.28}
+        />
       </mesh>
     </group>
   );
@@ -344,8 +374,12 @@ function CampusGarden({ palette }: { palette: ScenePalette }) {
 
   return (
     <group>
-      {trees.map((tree) => <Tree key={`${tree.x}-${tree.z}`} {...tree} palette={palette} />)}
-      {lamps.map((lamp) => <LampPost key={`${lamp.x}-${lamp.z}`} {...lamp} palette={palette} />)}
+      {trees.map((tree) => (
+        <Tree key={`${tree.x}-${tree.z}`} {...tree} palette={palette} />
+      ))}
+      {lamps.map((lamp) => (
+        <LampPost key={`${lamp.x}-${lamp.z}`} {...lamp} palette={palette} />
+      ))}
     </group>
   );
 }
@@ -378,14 +412,30 @@ function CampusBuildingModel({
   building,
   palette,
   interactive,
+  reduceMotion,
+  pulsePhase,
   onSelect,
 }: {
   building: CampusBuilding;
   palette: ScenePalette;
   interactive: boolean;
+  reduceMotion: boolean;
+  pulsePhase: number;
   onSelect: (building: CampusBuilding) => void;
 }) {
   const wall = palette[building.tint] ?? palette.orange;
+  const doorMaterialRef = useRef<THREE.MeshStandardMaterial>(null);
+
+  // Gentle glow pulse on each door, staggered per building; a steady glow when the
+  // visitor prefers reduced motion.
+  useFrame((state) => {
+    const material = doorMaterialRef.current;
+    if (!material) return;
+    material.emissiveIntensity = reduceMotion
+      ? 0.72
+      : 0.62 + Math.sin(state.clock.elapsedTime * 2.1 + pulsePhase) * 0.34;
+  });
+
   return (
     <group position={[building.x, 0, building.z]}>
       <mesh position={[0, 0.1, 0]} receiveShadow castShadow>
@@ -403,6 +453,7 @@ function CampusBuildingModel({
       <mesh position={[0, 0.62, building.depth / 2 + 0.045]} castShadow>
         <boxGeometry args={[0.7, 1.06, 0.1]} />
         <meshStandardMaterial
+          ref={doorMaterialRef}
           color={palette.yellow}
           emissive={palette.orange}
           emissiveIntensity={0.72}
@@ -412,7 +463,11 @@ function CampusBuildingModel({
       {[-0.76, 0.76].map((x) => (
         <mesh key={x} position={[x, 1.03, building.depth / 2 + 0.035]}>
           <boxGeometry args={[0.36, 0.4, 0.07]} />
-          <meshStandardMaterial color={palette.window} emissive={palette.window} emissiveIntensity={0.18} />
+          <meshStandardMaterial
+            color={palette.window}
+            emissive={palette.window}
+            emissiveIntensity={0.18}
+          />
         </mesh>
       ))}
       <Html position={[0, 2.67, 0]} center>
@@ -457,6 +512,7 @@ function StudentCharacter({
   onOpenSection: (id: string) => void;
 }) {
   const characterRef = useRef<THREE.Group>(null);
+  const shadowRef = useRef<THREE.Mesh>(null);
   const leftLegRef = useRef<THREE.Group>(null);
   const rightLegRef = useRef<THREE.Group>(null);
   const forward = useRef(new THREE.Vector3());
@@ -466,6 +522,25 @@ function StudentCharacter({
   const doorLock = useRef(false);
   const { camera } = useThree();
 
+  // Soft radial-gradient blob that grounds the character, independent of the light shadows.
+  const shadowTexture = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 128;
+    canvas.height = 128;
+    const context = canvas.getContext("2d");
+    if (context) {
+      const gradient = context.createRadialGradient(64, 64, 10, 64, 64, 64);
+      gradient.addColorStop(0, "rgba(26, 22, 58, 0.38)");
+      gradient.addColorStop(0.65, "rgba(26, 22, 58, 0.16)");
+      gradient.addColorStop(1, "rgba(26, 22, 58, 0)");
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, 128, 128);
+    }
+    return new THREE.CanvasTexture(canvas);
+  }, []);
+
+  useEffect(() => () => shadowTexture.dispose(), [shadowTexture]);
+
   useEffect(() => {
     if (!enabled) destinationRef.current = null;
   }, [destinationRef, enabled]);
@@ -473,12 +548,14 @@ function StudentCharacter({
   useFrame((state, delta) => {
     const keys = inputRef.current.keys;
     const joystick = inputRef.current.joystick;
-    const xAxis = (keys.has("KeyD") || keys.has("ArrowRight") ? 1 : 0)
-      - (keys.has("KeyA") || keys.has("ArrowLeft") ? 1 : 0)
-      + joystick.x;
-    const forwardAxis = (keys.has("KeyW") || keys.has("ArrowUp") ? 1 : 0)
-      - (keys.has("KeyS") || keys.has("ArrowDown") ? 1 : 0)
-      + joystick.z;
+    const xAxis =
+      (keys.has("KeyD") || keys.has("ArrowRight") ? 1 : 0) -
+      (keys.has("KeyA") || keys.has("ArrowLeft") ? 1 : 0) +
+      joystick.x;
+    const forwardAxis =
+      (keys.has("KeyW") || keys.has("ArrowUp") ? 1 : 0) -
+      (keys.has("KeyS") || keys.has("ArrowDown") ? 1 : 0) +
+      joystick.z;
 
     direction.current.set(0, 0, 0);
     if (Math.hypot(xAxis, forwardAxis) > 0.01) {
@@ -505,7 +582,9 @@ function StudentCharacter({
 
       const reachedBuilding = CAMPUS_BUILDINGS.find((building) => {
         const door = getDoorTarget(building);
-        return Math.hypot(result.position.x - door.x, result.position.z - door.z) <= INTERACTION_RADIUS;
+        return (
+          Math.hypot(result.position.x - door.x, result.position.z - door.z) <= INTERACTION_RADIUS
+        );
       });
       if (!reachedBuilding) doorLock.current = false;
       const reachedId = result.reachedId ?? reachedBuilding?.id ?? null;
@@ -519,8 +598,18 @@ function StudentCharacter({
     elapsed.current += delta;
     const character = characterRef.current;
     if (!character) return;
-    const bob = reduceMotion ? 0 : Math.sin(state.clock.elapsedTime * (moving ? 11 : 3.5)) * (moving ? 0.045 : 0.03);
+    const bob = reduceMotion
+      ? 0
+      : Math.sin(state.clock.elapsedTime * (moving ? 11 : 3.5)) * (moving ? 0.045 : 0.03);
     character.position.set(positionRef.current.x, bob, positionRef.current.z);
+
+    const shadow = shadowRef.current;
+    if (shadow) {
+      shadow.position.set(positionRef.current.x, 0.015, positionRef.current.z);
+      // The blob eases slightly as the character bobs upward.
+      const spread = 1 - bob * 2.4;
+      shadow.scale.set(spread, spread, 1);
+    }
 
     if (moving && direction.current.lengthSq() > 0.001) {
       const targetRotation = Math.atan2(direction.current.x, direction.current.z);
@@ -535,52 +624,58 @@ function StudentCharacter({
   });
 
   return (
-    <group ref={characterRef} position={[0, 0, 5.1]}>
-      <group position={[0, 0, 0]}>
-      <mesh position={[0, 0.57, -0.31]} castShadow>
-          <boxGeometry args={[0.55, 0.66, 0.28]} />
-        <meshStandardMaterial color={palette.wood} roughness={0.92} />
-        </mesh>
-        <mesh position={[0, 1.02, 0]} castShadow>
-          <capsuleGeometry args={[0.37, 0.57, 4, 8]} />
-        <meshStandardMaterial color={palette.teal} roughness={0.76} />
-        </mesh>
-        <mesh position={[0, 0.75, 0.06]} castShadow>
-          <boxGeometry args={[0.64, 0.16, 0.46]} />
-        <meshStandardMaterial color={palette.teal} roughness={0.76} />
-        </mesh>
-        <mesh position={[0, 1.77, 0.02]} castShadow>
-          <sphereGeometry args={[0.43, 16, 12]} />
-        <meshStandardMaterial color={palette.skin} roughness={0.88} />
-        </mesh>
-        <mesh position={[0, 2.08, -0.02]} castShadow>
-          <sphereGeometry args={[0.46, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.52]} />
-        <meshStandardMaterial color={palette.navy} roughness={0.9} flatShading />
-        </mesh>
-        {[-0.14, 0.14].map((x) => (
-          <mesh key={x} position={[x, 1.82, 0.39]}>
-            <sphereGeometry args={[0.045, 8, 6]} />
-          <meshStandardMaterial color={palette.navy} roughness={0.5} />
+    <>
+      <mesh ref={shadowRef} position={[0, 0.015, 5.1]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[1.7, 1.7]} />
+        <meshBasicMaterial map={shadowTexture} transparent depthWrite={false} />
+      </mesh>
+      <group ref={characterRef} position={[0, 0, 5.1]}>
+        <group position={[0, 0, 0]}>
+          <mesh position={[0, 0.57, -0.31]} castShadow>
+            <boxGeometry args={[0.55, 0.66, 0.28]} />
+            <meshStandardMaterial color={palette.wood} roughness={0.92} />
           </mesh>
-        ))}
-        <mesh position={[0, 1.02, 0.39]} castShadow>
-          <boxGeometry args={[0.48, 0.1, 0.08]} />
-        <meshStandardMaterial color={palette.yellow} roughness={0.7} />
-        </mesh>
-        <group ref={leftLegRef} position={[-0.16, 0.47, 0]}>
-          <mesh position={[0, -0.16, 0]} castShadow>
-            <capsuleGeometry args={[0.12, 0.28, 3, 6]} />
-            <meshStandardMaterial color={palette.navy} roughness={0.9} />
+          <mesh position={[0, 1.02, 0]} castShadow>
+            <capsuleGeometry args={[0.37, 0.57, 4, 8]} />
+            <meshStandardMaterial color={palette.teal} roughness={0.76} />
           </mesh>
-        </group>
-        <group ref={rightLegRef} position={[0.16, 0.47, 0]}>
-          <mesh position={[0, -0.16, 0]} castShadow>
-            <capsuleGeometry args={[0.12, 0.28, 3, 6]} />
-            <meshStandardMaterial color={palette.navy} roughness={0.9} />
+          <mesh position={[0, 0.75, 0.06]} castShadow>
+            <boxGeometry args={[0.64, 0.16, 0.46]} />
+            <meshStandardMaterial color={palette.teal} roughness={0.76} />
           </mesh>
+          <mesh position={[0, 1.77, 0.02]} castShadow>
+            <sphereGeometry args={[0.43, 16, 12]} />
+            <meshStandardMaterial color={palette.skin} roughness={0.88} />
+          </mesh>
+          <mesh position={[0, 2.08, -0.02]} castShadow>
+            <sphereGeometry args={[0.46, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.52]} />
+            <meshStandardMaterial color={palette.navy} roughness={0.9} flatShading />
+          </mesh>
+          {[-0.14, 0.14].map((x) => (
+            <mesh key={x} position={[x, 1.82, 0.39]}>
+              <sphereGeometry args={[0.045, 8, 6]} />
+              <meshStandardMaterial color={palette.navy} roughness={0.5} />
+            </mesh>
+          ))}
+          <mesh position={[0, 1.02, 0.39]} castShadow>
+            <boxGeometry args={[0.48, 0.1, 0.08]} />
+            <meshStandardMaterial color={palette.yellow} roughness={0.7} />
+          </mesh>
+          <group ref={leftLegRef} position={[-0.16, 0.47, 0]}>
+            <mesh position={[0, -0.16, 0]} castShadow>
+              <capsuleGeometry args={[0.12, 0.28, 3, 6]} />
+              <meshStandardMaterial color={palette.navy} roughness={0.9} />
+            </mesh>
+          </group>
+          <group ref={rightLegRef} position={[0.16, 0.47, 0]}>
+            <mesh position={[0, -0.16, 0]} castShadow>
+              <capsuleGeometry args={[0.12, 0.28, 3, 6]} />
+              <meshStandardMaterial color={palette.navy} roughness={0.9} />
+            </mesh>
+          </group>
         </group>
       </group>
-    </group>
+    </>
   );
 }
 
@@ -616,11 +711,14 @@ export function CampusExperience({
     return () => preference.removeEventListener("change", updatePreference);
   }, []);
 
-  const handleOpenSection = useCallback((id: string) => {
-    destinationRef.current = null;
-    setDestinationLabel(null);
-    onOpenSection(id);
-  }, [onOpenSection]);
+  const handleOpenSection = useCallback(
+    (id: string) => {
+      destinationRef.current = null;
+      setDestinationLabel(null);
+      onOpenSection(id);
+    },
+    [onOpenSection],
+  );
 
   useEffect(() => {
     if (activeSection) {
@@ -639,17 +737,18 @@ export function CampusExperience({
       return;
     }
 
+    const input = inputRef.current;
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.code;
       if (!PLAYER_KEYS.has(key)) return;
       event.preventDefault();
-      inputRef.current.keys.add(key);
+      input.keys.add(key);
       destinationRef.current = null;
       setDestinationLabel(null);
       setHintVisible(false);
     };
-    const handleKeyUp = (event: KeyboardEvent) => inputRef.current.keys.delete(event.code);
-    const clearKeys = () => inputRef.current.keys.clear();
+    const handleKeyUp = (event: KeyboardEvent) => input.keys.delete(event.code);
+    const clearKeys = () => input.keys.clear();
     window.addEventListener("keydown", handleKeyDown, { passive: false });
     window.addEventListener("keyup", handleKeyUp);
     window.addEventListener("blur", clearKeys);
@@ -657,17 +756,20 @@ export function CampusExperience({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", clearKeys);
-      inputRef.current.keys.clear();
+      input.keys.clear();
     };
   }, [activeSection, isClassic, started]);
 
-  const walkTo = useCallback((building: CampusBuilding) => {
-    if (!started) return;
-    const target = getDoorTarget(building);
-    destinationRef.current = { id: building.id, ...target };
-    setDestinationLabel(building.label);
-    setHintVisible(false);
-  }, [started]);
+  const walkTo = useCallback(
+    (building: CampusBuilding) => {
+      if (!started) return;
+      const target = getDoorTarget(building);
+      destinationRef.current = { id: building.id, ...target };
+      setDestinationLabel(building.label);
+      setHintVisible(false);
+    },
+    [started],
+  );
 
   const updateJoystick = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
     const maxDistance = 34;
@@ -686,14 +788,20 @@ export function CampusExperience({
     }
   }, []);
 
-  const handleJoystickDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    joystickRef.current = event.pointerId;
-    const bounds = event.currentTarget.getBoundingClientRect();
-    joystickOrigin.current = { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 };
-    event.currentTarget.setPointerCapture(event.pointerId);
-    updateJoystick(event);
-  }, [updateJoystick]);
+  const handleJoystickDown = useCallback(
+    (event: ReactPointerEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      joystickRef.current = event.pointerId;
+      const bounds = event.currentTarget.getBoundingClientRect();
+      joystickOrigin.current = {
+        x: bounds.left + bounds.width / 2,
+        y: bounds.top + bounds.height / 2,
+      };
+      event.currentTarget.setPointerCapture(event.pointerId);
+      updateJoystick(event);
+    },
+    [updateJoystick],
+  );
 
   const handleJoystickEnd = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
     if (joystickRef.current !== event.pointerId) return;
@@ -715,7 +823,7 @@ export function CampusExperience({
         shadows
         orthographic
         dpr={[1, 1.5]}
-        camera={{ position: [10, 12.5, 14], zoom: 38, near: 0.1, far: 65 }}
+        camera={{ position: [10, 12.5, 14], zoom: 46, near: 0.1, far: 65 }}
         gl={{ antialias: true, powerPreference: "high-performance", alpha: false }}
       >
         <Suspense fallback={null}>
@@ -737,8 +845,16 @@ export function CampusExperience({
       <div className={`campus-intro${isClassic ? " campus-intro-classic" : ""}`}>
         <p className="eyebrow">SECTOR 62 · NOIDA</p>
         <h1>BrightPath Classes</h1>
-        <p>{isClassic ? "Small batches. Clear concepts. Brighter futures." : "A welcoming place to grow, learn and find your way."}</p>
-        {isClassic ? <a className="intro-link" href="#classic-courses">Explore classes <MoveUpRight size={15} aria-hidden="true" /></a> : null}
+        <p>
+          {isClassic
+            ? "Small batches. Clear concepts. Brighter futures."
+            : "A welcoming place to grow, learn and find your way."}
+        </p>
+        {isClassic ? (
+          <a className="intro-link" href="#classic-courses">
+            Explore classes <MoveUpRight size={15} aria-hidden="true" />
+          </a>
+        ) : null}
       </div>
 
       {!isClassic ? (
@@ -763,12 +879,26 @@ export function CampusExperience({
             </nav>
           ) : null}
 
-          {showExploreHints ? <p className="first-time-hint">Use arrow keys or tap a building.</p> : null}
+          {showExploreHints ? (
+            <p className="first-time-hint">Use arrow keys or tap a building.</p>
+          ) : null}
 
           {destinationLabel && !activeSection ? (
             <div className="walking-status" role="status" aria-live="polite">
               <span className="walking-dot" aria-hidden="true" /> Walking to {destinationLabel}
-              <Button className="walking-stop" type="button" variant="secondary" size="sm" onClick={() => { destinationRef.current = null; setDestinationLabel(null); }} aria-label="Stop walking">Stop</Button>
+              <Button
+                className="walking-stop"
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  destinationRef.current = null;
+                  setDestinationLabel(null);
+                }}
+                aria-label="Stop walking"
+              >
+                Stop
+              </Button>
             </div>
           ) : null}
 
@@ -780,12 +910,19 @@ export function CampusExperience({
               size="icon"
               aria-label="Move student with the joystick"
               onPointerDown={handleJoystickDown}
-              onPointerMove={(event) => { if (joystickRef.current === event.pointerId) updateJoystick(event); }}
+              onPointerMove={(event) => {
+                if (joystickRef.current === event.pointerId) updateJoystick(event);
+              }}
               onPointerUp={handleJoystickEnd}
               onPointerCancel={handleJoystickEnd}
               onLostPointerCapture={handleJoystickEnd}
             >
-              <span className="joystick-thumb" style={{ transform: `translate(calc(-50% + ${joystickOffset.x}px), calc(-50% + ${joystickOffset.y}px))` }} />
+              <span
+                className="joystick-thumb"
+                style={{
+                  transform: `translate(calc(-50% + ${joystickOffset.x}px), calc(-50% + ${joystickOffset.y}px))`,
+                }}
+              />
             </Button>
           ) : null}
 
@@ -794,16 +931,33 @@ export function CampusExperience({
               <div className="loading-card">
                 <p className="eyebrow">BRIGHTPATH CLASSES</p>
                 <span>Preparing your campus…</span>
-                <div className="loading-track" role="progressbar" aria-label="Campus loading progress" aria-valuemin={0} aria-valuemax={100}><span /></div>
+                <div
+                  className="loading-track"
+                  role="progressbar"
+                  aria-label="Campus loading progress"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <span />
+                </div>
               </div>
             </div>
           ) : !started ? (
             <div className="start-overlay">
-              <div className="start-card" role="dialog" aria-modal="true" aria-labelledby="start-title">
+              <div
+                className="start-card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="start-title"
+              >
                 <p className="eyebrow">YOUR CAMPUS IS READY</p>
                 <h2 id="start-title">Take a little look around.</h2>
                 <p>Meet the team, explore the classes and see what makes BrightPath different.</p>
-                <Button className="button button-primary start-button" type="button" onClick={onStart}>
+                <Button
+                  className="button button-primary start-button"
+                  type="button"
+                  onClick={onStart}
+                >
                   Start exploring <MoveUpRight size={16} aria-hidden="true" />
                 </Button>
                 <p className="start-hint">Use arrow keys or tap a building.</p>

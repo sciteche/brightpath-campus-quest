@@ -230,7 +230,10 @@
   line-height: 1.2;
   text-align: center;
   text-decoration: none;
-  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
   cursor: pointer;
 }
 
@@ -265,7 +268,7 @@
   position: relative;
   isolation: isolate;
   width: 100%;
-  height: min(78svh, 840px);
+  height: min(88svh, 960px);
   min-height: 540px;
   overflow: hidden;
   background: var(--campus-sky);
@@ -496,8 +499,12 @@
 }
 
 @keyframes loading-progress {
-  from { transform: translateX(0); }
-  to { transform: translateX(136%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(136%);
+  }
 }
 
 .start-card h2 {

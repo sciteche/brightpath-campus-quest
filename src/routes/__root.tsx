@@ -61,12 +61,12 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
           >
             Try again
           </button>
-          <a
-            href="/"
+          <Link
+            to="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Go home
-          </a>
+          </Link>
         </div>
       </div>
     </div>
@@ -83,22 +83,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "BrightPath Classes" },
       { name: "description", content: "Class 9–12 coaching in Sector 62, Noida." },
-      { name: "author", content: "Lovable" },
+      { name: "author", content: "BrightPath Classes" },
+      { name: "theme-color", content: "#FFFDF7" },
       { property: "og:title", content: "BrightPath Classes" },
       { property: "og:description", content: "Class 9–12 coaching in Sector 62, Noida." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "BrightPath Classes" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      // Relative so the icons resolve when the site is hosted in a sub-folder (GitHub Pages).
+      { rel: "icon", href: "favicon.ico", sizes: "32x32" },
+      { rel: "icon", href: "favicon.svg", type: "image/svg+xml" },
     ],
   }),
   shellComponent: RootShell,

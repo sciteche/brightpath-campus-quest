@@ -3,9 +3,16 @@ import { z } from "zod";
 export const WHATSAPP_NUMBER = "919000000000";
 
 export const bookingSchema = z.object({
-  studentName: z.string().trim().min(1, "Enter the student's name.").max(80, "Use 80 characters or fewer."),
+  studentName: z
+    .string()
+    .trim()
+    .min(1, "Enter the student's name.")
+    .max(80, "Use 80 characters or fewer."),
   studentClass: z.enum(["9", "10", "11", "12"], { message: "Choose a class from 9 to 12." }),
-  parentPhone: z.string().trim().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number."),
+  parentPhone: z
+    .string()
+    .trim()
+    .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number."),
   preferredTime: z.enum(["After school · 4–6 pm", "Early evening · 6–8 pm", "Weekend · flexible"], {
     message: "Choose a preferred time.",
   }),
