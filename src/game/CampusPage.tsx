@@ -2,6 +2,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { BookOpen, Gamepad2, MessageCircle, MoveUpRight, School, X } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+
 import { GENERAL_WHATSAPP_HREF } from "./booking";
 import { CampusExperience } from "./CampusExperience";
 import { ClassicPage } from "./ClassicPage";
@@ -35,18 +37,19 @@ export function CampusPage() {
           <span className="brand-wordmark"><strong>BrightPath</strong><span>CLASSES · SECTOR 62</span></span>
         </a>
         <div className="topbar-actions">
-          <button
+          <Button
             className="button button-view"
             type="button"
+            variant="outline"
             aria-pressed={isClassic}
             onClick={() => setIsClassic((current) => !current)}
           >
             {isClassic ? <Gamepad2 size={17} aria-hidden="true" /> : <BookOpen size={17} aria-hidden="true" />}
             <span>{isClassic ? "Explore campus" : "Classic view"}</span>
-          </button>
-          <button className="button button-primary header-cta" type="button" onClick={bookDemo}>
+          </Button>
+          <Button className="button button-primary header-cta" type="button" onClick={bookDemo}>
             Book a free demo <MoveUpRight size={16} aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -84,8 +87,10 @@ export function CampusPage() {
                   <p className="eyebrow">BRIGHTPATH CLASSES</p>
                   <Dialog.Title className="dialog-title">{SECTION_TITLES[activeSection]}</Dialog.Title>
                 </div>
-                <Dialog.Close className="icon-button" aria-label="Close section">
-                  <X size={19} aria-hidden="true" />
+                <Dialog.Close asChild>
+                  <Button className="icon-button" variant="outline" size="icon" type="button" aria-label="Close section">
+                    <X size={19} aria-hidden="true" />
+                  </Button>
                 </Dialog.Close>
               </div>
               <Dialog.Description className="sr-only">Campus information for {SECTION_TITLES[activeSection]}.</Dialog.Description>

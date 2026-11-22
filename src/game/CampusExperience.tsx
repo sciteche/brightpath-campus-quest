@@ -12,6 +12,8 @@ import {
 } from "react";
 import * as THREE from "three";
 
+import { Button } from "@/components/ui/button";
+
 import { CAMPUS_BUILDINGS, getDoorTarget, type CampusBuilding } from "./content";
 import {
   INTERACTION_RADIUS,
@@ -181,10 +183,11 @@ function FollowCamera({
     desired.current.set(position.x + 10, 12.5, position.z + 14);
     const speed = reduceMotion ? 18 : 4.7;
     camera.position.lerp(desired.current, 1 - Math.exp(-speed * Math.min(delta, 0.05)));
-    lookAt.current.set(position.x, 0.65, position.z);
+    lookAt.current.set(position.x, 0.65, position.z - 2.2);
     camera.lookAt(lookAt.current);
     if (camera instanceof THREE.OrthographicCamera) {
-      const zoom = Math.min(size.width, size.height) / 22;
+      const worldSpan = size.width < 640 ? 26 : 22;
+      const zoom = Math.min(size.width, size.height) / worldSpan;
       if (Math.abs(camera.zoom - zoom) > 0.01) {
         camera.zoom = zoom;
         camera.updateProjectionMatrix();
@@ -212,6 +215,10 @@ function Island({ palette }: { palette: ScenePalette }) {
       <mesh position={[0, -0.98, 0]} castShadow>
         <cylinderGeometry args={[8.75, 7.5, 0.38, 40]} />
         <meshStandardMaterial color={palette.wood} roughness={0.94} />
+      </mesh>
+      <mesh position={[0, -0.08, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <circleGeometry args={[9.4, 48]} />
+        <meshStandardMaterial color={palette.grass} roughness={0.94} />
       </mesh>
       {patches.map(([x, z, size]) => (
         <mesh key={`${x}-${z}`} position={[x, 0.009, z]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -360,7 +367,7 @@ function EntranceArch({ palette }: { palette: ScenePalette }) {
         <boxGeometry args={[3.95, 0.22, 0.72]} />
         <meshStandardMaterial color={palette.path} roughness={0.9} />
       </mesh>
-      <Html position={[0, 2.48, 0.28]} center distanceFactor={10}>
+      <Html position={[0, 2.48, 0.28]} center>
         <div className="arch-name">BRIGHTPATH CLASSES</div>
       </Html>
     </group>
@@ -408,11 +415,13 @@ function CampusBuildingModel({
           <meshStandardMaterial color={palette.window} emissive={palette.window} emissiveIntensity={0.18} />
         </mesh>
       ))}
-      <Html position={[0, 2.67, 0]} center distanceFactor={10}>
+      <Html position={[0, 2.67, 0]} center>
         {interactive ? (
-          <button
-            className="world-label"
+          <Button
+            className={`world-label world-label-${building.id}`}
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={(event) => {
               event.stopPropagation();
               onSelect(building);
@@ -421,7 +430,7 @@ function CampusBuildingModel({
           >
             <span>{building.label}</span>
             <MoveUpRight size={13} aria-hidden="true" />
-          </button>
+          </Button>
         ) : (
           <span className="world-label world-label-static">{building.label}</span>
         )}
@@ -459,7 +468,6 @@ function StudentCharacter({
 
   useEffect(() => {
     if (!enabled) destinationRef.current = null;
-    if (!enabled) doorLock.current = false;
   }, [destinationRef, enabled]);
 
   useFrame((state, delta) => {
@@ -495,14 +503,12 @@ function StudentCharacter({
       positionRef.current = result.position;
       moving = result.moving;
 
-      let reachedId = result.reachedId;
-      if (!reachedId) {
-        const reachedBuilding = CAMPUS_BUILDINGS.find((building) => {
-          const door = getDoorTarget(building);
-          return Math.hypot(result.position.x - door.x, result.position.z - door.z) <= INTERACTION_RADIUS;
-        });
-        reachedId = reachedBuilding?.id ?? null;
-      }
+      const reachedBuilding = CAMPUS_BUILDINGS.find((building) => {
+        const door = getDoorTarget(building);
+        return Math.hypot(result.position.x - door.x, result.position.z - door.z) <= INTERACTION_RADIUS;
+      });
+      if (!reachedBuilding) doorLock.current = false;
+      const reachedId = result.reachedId ?? reachedBuilding?.id ?? null;
       if (reachedId && !doorLock.current) {
         doorLock.current = true;
         destinationRef.current = null;
@@ -529,7 +535,7 @@ function StudentCharacter({
   });
 
   return (
-    <group ref={characterRef} position={[0, 0, 6.4]}>
+    <group ref={characterRef} position={[0, 0, 5.1]}>
       <group position={[0, 0, 0]}>
       <mesh position={[0, 0.57, -0.31]} castShadow>
           <boxGeometry args={[0.55, 0.66, 0.28]} />
@@ -596,7 +602,7 @@ export function CampusExperience({
   const [destinationLabel, setDestinationLabel] = useState<string | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
   const inputRef = useRef<PlayerInput>({ keys: new Set(), joystick: { x: 0, z: 0 } });
-  const positionRef = useRef<Point2D>({ x: 0, z: 6.4 });
+  const positionRef = useRef<Point2D>({ x: 0, z: 5.1 });
   const destinationRef = useRef<MoveDestination | null>(null);
   const joystickRef = useRef<number | null>(null);
   const joystickOrigin = useRef({ x: 0, y: 0 });
@@ -741,16 +747,18 @@ export function CampusExperience({
             <nav className="campus-guide" aria-label="Campus buildings">
               <p className="guide-heading">Visit a place</p>
               {CAMPUS_BUILDINGS.map((building) => (
-                <button
+                <Button
                   className="guide-link"
                   key={building.id}
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => walkTo(building)}
                   disabled={Boolean(activeSection)}
                 >
                   <MapPin size={14} aria-hidden="true" />
                   <span>{building.label}</span>
-                </button>
+                </Button>
               ))}
             </nav>
           ) : null}
@@ -760,14 +768,16 @@ export function CampusExperience({
           {destinationLabel && !activeSection ? (
             <div className="walking-status" role="status" aria-live="polite">
               <span className="walking-dot" aria-hidden="true" /> Walking to {destinationLabel}
-              <button type="button" onClick={() => { destinationRef.current = null; setDestinationLabel(null); }} aria-label="Stop walking">Stop</button>
+              <Button className="walking-stop" type="button" variant="secondary" size="sm" onClick={() => { destinationRef.current = null; setDestinationLabel(null); }} aria-label="Stop walking">Stop</Button>
             </div>
           ) : null}
 
           {started ? (
-            <button
+            <Button
               className="virtual-joystick"
               type="button"
+              variant="outline"
+              size="icon"
               aria-label="Move student with the joystick"
               onPointerDown={handleJoystickDown}
               onPointerMove={(event) => { if (joystickRef.current === event.pointerId) updateJoystick(event); }}
@@ -776,7 +786,7 @@ export function CampusExperience({
               onLostPointerCapture={handleJoystickEnd}
             >
               <span className="joystick-thumb" style={{ transform: `translate(calc(-50% + ${joystickOffset.x}px), calc(-50% + ${joystickOffset.y}px))` }} />
-            </button>
+            </Button>
           ) : null}
 
           {!sceneReady ? (
@@ -793,9 +803,9 @@ export function CampusExperience({
                 <p className="eyebrow">YOUR CAMPUS IS READY</p>
                 <h2 id="start-title">Take a little look around.</h2>
                 <p>Meet the team, explore the classes and see what makes BrightPath different.</p>
-                <button className="button button-primary start-button" type="button" onClick={onStart}>
+                <Button className="button button-primary start-button" type="button" onClick={onStart}>
                   Start exploring <MoveUpRight size={16} aria-hidden="true" />
-                </button>
+                </Button>
                 <p className="start-hint">Use arrow keys or tap a building.</p>
               </div>
             </div>

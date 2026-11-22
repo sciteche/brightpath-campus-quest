@@ -578,10 +578,10 @@
   z-index: 40;
   top: 88px;
   right: clamp(14px, 3vw, 42px);
-  bottom: 20px;
+  bottom: auto;
   display: flex;
   width: min(460px, calc(100vw - 28px));
-  max-height: calc(100svh - 108px);
+  max-height: min(720px, calc(100svh - 108px));
   flex-direction: column;
   overflow: auto;
   border: 1px solid color-mix(in oklab, var(--primary) 17%, transparent);
@@ -1318,8 +1318,19 @@
     width: 12px;
   }
 
+  .world-label {
+    min-height: 25px;
+    gap: 2px;
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+
+  .world-label svg {
+    display: none;
+  }
+
   .first-time-hint {
-    bottom: 67px;
+    bottom: 108px;
     left: 14px;
     max-width: calc(100% - 28px);
     font-size: 12px;

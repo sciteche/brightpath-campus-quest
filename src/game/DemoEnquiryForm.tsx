@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
 
+import { Button } from "@/components/ui/button";
+
 import { bookingSchema, getBookingWhatsAppHref } from "./booking";
 
 interface FormValues {
@@ -135,17 +137,17 @@ export function DemoEnquiryForm() {
           {errors.preferredTime ? <span className="field-error" id="preferred-time-error">{errors.preferredTime}</span> : null}
         </label>
 
-        <button className="button button-primary form-submit" type="submit">
+        <Button className="button button-primary form-submit" type="submit">
           Request free demo
-        </button>
+        </Button>
       </form>
 
       {whatsAppHref ? (
         <div className="form-success" role="status" aria-live="polite">
           <p>Thanks, {values.studentName.trim()}. Your demo request is ready.</p>
-          <a className="button button-whatsapp form-whatsapp" href={whatsAppHref} target="_blank" rel="noreferrer">
-            Send on WhatsApp
-          </a>
+          <Button asChild className="button button-whatsapp form-whatsapp" variant="default">
+            <a href={whatsAppHref} target="_blank" rel="noreferrer">Send on WhatsApp</a>
+          </Button>
         </div>
       ) : null}
     </div>

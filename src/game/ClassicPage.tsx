@@ -1,5 +1,7 @@
 import { ArrowDown, MoveUpRight } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+
 import { RESULTS, SECTION_TITLES, type CampusSectionId } from "./content";
 import { SectionContent } from "./SectionContent";
 
@@ -19,7 +21,9 @@ export function ClassicPage() {
           <p className="eyebrow">A FRIENDLY COACHING CENTRE IN SECTOR 62, NOIDA</p>
           <h2 id="welcome-heading">Learning that makes the next step feel possible.</h2>
           <p>Focused classes for students in Classes 9–12, with clear teaching and room to ask questions.</p>
-          <a className="button button-primary" href="#classic-demo">Book a free demo <MoveUpRight size={16} aria-hidden="true" /></a>
+          <Button asChild className="button button-primary" variant="default">
+            <a href="#classic-demo">Book a free demo <MoveUpRight size={16} aria-hidden="true" /></a>
+          </Button>
         </div>
         <a className="scroll-cue" href="#classic-courses" aria-label="Scroll to courses">
           <ArrowDown size={17} aria-hidden="true" />
