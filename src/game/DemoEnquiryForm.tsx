@@ -49,10 +49,18 @@ export function DemoEnquiryForm() {
       for (const issue of result.error.issues) {
         const field = issue.path[0];
         switch (field) {
-          case "studentName": nextErrors.studentName = issue.message; break;
-          case "studentClass": nextErrors.studentClass = issue.message; break;
-          case "parentPhone": nextErrors.parentPhone = issue.message; break;
-          case "preferredTime": nextErrors.preferredTime = issue.message; break;
+          case "studentName":
+            nextErrors.studentName = issue.message;
+            break;
+          case "studentClass":
+            nextErrors.studentClass = issue.message;
+            break;
+          case "parentPhone":
+            nextErrors.parentPhone = issue.message;
+            break;
+          case "preferredTime":
+            nextErrors.preferredTime = issue.message;
+            break;
         }
       }
       setErrors(nextErrors);
@@ -80,7 +88,11 @@ export function DemoEnquiryForm() {
             aria-describedby={errors.studentName ? "student-name-error" : undefined}
             required
           />
-          {errors.studentName ? <span className="field-error" id="student-name-error">{errors.studentName}</span> : null}
+          {errors.studentName ? (
+            <span className="field-error" id="student-name-error">
+              {errors.studentName}
+            </span>
+          ) : null}
         </label>
 
         <label className="form-field">
@@ -99,7 +111,11 @@ export function DemoEnquiryForm() {
             <option value="11">Class 11</option>
             <option value="12">Class 12</option>
           </select>
-          {errors.studentClass ? <span className="field-error" id="student-class-error">{errors.studentClass}</span> : null}
+          {errors.studentClass ? (
+            <span className="field-error" id="student-class-error">
+              {errors.studentClass}
+            </span>
+          ) : null}
         </label>
 
         <label className="form-field">
@@ -111,12 +127,18 @@ export function DemoEnquiryForm() {
             type="tel"
             value={values.parentPhone}
             maxLength={10}
-            onChange={(event) => updateField("parentPhone", event.currentTarget.value.replace(/\D/g, ""))}
+            onChange={(event) =>
+              updateField("parentPhone", event.currentTarget.value.replace(/\D/g, ""))
+            }
             aria-invalid={Boolean(errors.parentPhone)}
             aria-describedby={errors.parentPhone ? "parent-phone-error" : undefined}
             required
           />
-          {errors.parentPhone ? <span className="field-error" id="parent-phone-error">{errors.parentPhone}</span> : null}
+          {errors.parentPhone ? (
+            <span className="field-error" id="parent-phone-error">
+              {errors.parentPhone}
+            </span>
+          ) : null}
         </label>
 
         <label className="form-field">
@@ -134,7 +156,11 @@ export function DemoEnquiryForm() {
             <option value="Early evening · 6–8 pm">Early evening · 6–8 pm</option>
             <option value="Weekend · flexible">Weekend · flexible</option>
           </select>
-          {errors.preferredTime ? <span className="field-error" id="preferred-time-error">{errors.preferredTime}</span> : null}
+          {errors.preferredTime ? (
+            <span className="field-error" id="preferred-time-error">
+              {errors.preferredTime}
+            </span>
+          ) : null}
         </label>
 
         <Button className="button button-primary form-submit" type="submit">
@@ -146,7 +172,9 @@ export function DemoEnquiryForm() {
         <div className="form-success" role="status" aria-live="polite">
           <p>Thanks, {values.studentName.trim()}. Your demo request is ready.</p>
           <Button asChild className="button button-whatsapp form-whatsapp" variant="default">
-            <a href={whatsAppHref} target="_blank" rel="noreferrer">Send on WhatsApp</a>
+            <a href={whatsAppHref} target="_blank" rel="noreferrer">
+              Send on WhatsApp
+            </a>
           </Button>
         </div>
       ) : null}

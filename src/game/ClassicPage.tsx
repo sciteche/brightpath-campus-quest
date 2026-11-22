@@ -12,7 +12,9 @@ export function ClassicPage() {
     <div className="classic-page">
       <nav className="classic-jumpbar" aria-label="Page sections">
         {CLASSIC_SECTIONS.map((section) => (
-          <a key={section} href={`#classic-${section}`}>{section === "demo" ? "Book a demo" : SECTION_TITLES[section]}</a>
+          <a key={section} href={`#classic-${section}`}>
+            {section === "demo" ? "Book a demo" : SECTION_TITLES[section]}
+          </a>
         ))}
       </nav>
 
@@ -20,9 +22,14 @@ export function ClassicPage() {
         <div className="welcome-copy">
           <p className="eyebrow">A FRIENDLY COACHING CENTRE IN SECTOR 62, NOIDA</p>
           <h2 id="welcome-heading">Learning that makes the next step feel possible.</h2>
-          <p>Focused classes for students in Classes 9–12, with clear teaching and room to ask questions.</p>
+          <p>
+            Focused classes for students in Classes 9–12, with clear teaching and room to ask
+            questions.
+          </p>
           <Button asChild className="button button-primary" variant="default">
-            <a href="#classic-demo">Book a free demo <MoveUpRight size={16} aria-hidden="true" /></a>
+            <a href="#classic-demo">
+              Book a free demo <MoveUpRight size={16} aria-hidden="true" />
+            </a>
           </Button>
         </div>
         <a className="scroll-cue" href="#classic-courses" aria-label="Scroll to courses">
@@ -30,7 +37,11 @@ export function ClassicPage() {
         </a>
       </section>
 
-      <section className="classic-section course-section" id="classic-courses" aria-labelledby="courses-heading">
+      <section
+        className="classic-section course-section"
+        id="classic-courses"
+        aria-labelledby="courses-heading"
+      >
         <div className="section-heading-row">
           <div>
             <p className="eyebrow">A CLEAR PLAN FOR EVERY CLASS</p>
@@ -41,7 +52,11 @@ export function ClassicPage() {
         <SectionContent section="courses" />
       </section>
 
-      <section className="classic-results-band" id="classic-results" aria-labelledby="results-heading">
+      <section
+        className="classic-results-band"
+        id="classic-results"
+        aria-labelledby="results-heading"
+      >
         <div className="results-band-inner">
           <div className="results-heading">
             <p className="eyebrow">STEADY PROGRESS, TOGETHER</p>
@@ -59,7 +74,11 @@ export function ClassicPage() {
         </div>
       </section>
 
-      <section className="classic-section faculty-section" id="classic-faculty" aria-labelledby="faculty-heading">
+      <section
+        className="classic-section faculty-section"
+        id="classic-faculty"
+        aria-labelledby="faculty-heading"
+      >
         <div className="section-heading-row">
           <div>
             <p className="eyebrow">PATIENT TEACHERS, PERSONAL ATTENTION</p>

@@ -5,11 +5,7 @@ import { CAMPUS_WALK_LIMIT, canOccupy, moveCampusPlayer } from "./campus";
 
 describe("campus movement rules", () => {
   it("keeps the player on the island boundary", () => {
-    const result = moveCampusPlayer(
-      { x: CAMPUS_WALK_LIMIT - 0.02, z: 0 },
-      { x: 1, z: 0 },
-      0.05,
-    );
+    const result = moveCampusPlayer({ x: CAMPUS_WALK_LIMIT - 0.02, z: 0 }, { x: 1, z: 0 }, 0.05);
 
     expect(Math.hypot(result.position.x, result.position.z)).toBeLessThanOrEqual(CAMPUS_WALK_LIMIT);
   });
@@ -20,12 +16,10 @@ describe("campus movement rules", () => {
 
     if (!building) return;
     expect(canOccupy({ x: building.x, z: building.z })).toBe(false);
-    const result = moveCampusPlayer(
-      { x: building.x - 1.6, z: building.z },
-      { x: 1, z: 0 },
-      0.05,
-    );
-    expect(Math.hypot(result.position.x - building.x, result.position.z - building.z)).toBeGreaterThan(1.2);
+    const result = moveCampusPlayer({ x: building.x - 1.6, z: building.z }, { x: 1, z: 0 }, 0.05);
+    expect(
+      Math.hypot(result.position.x - building.x, result.position.z - building.z),
+    ).toBeGreaterThan(1.2);
   });
 
   it("moves toward a selected campus door", () => {

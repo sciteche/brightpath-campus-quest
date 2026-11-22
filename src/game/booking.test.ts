@@ -4,21 +4,25 @@ import { bookingSchema, getBookingWhatsAppHref, WHATSAPP_NUMBER } from "./bookin
 
 describe("free demo enquiry", () => {
   it("accepts a 10-digit Indian parent mobile number", () => {
-    expect(bookingSchema.safeParse({
-      studentName: "Aarav",
-      studentClass: "9",
-      parentPhone: "9876543210",
-      preferredTime: "After school · 4–6 pm",
-    }).success).toBe(true);
+    expect(
+      bookingSchema.safeParse({
+        studentName: "Aarav",
+        studentClass: "9",
+        parentPhone: "9876543210",
+        preferredTime: "After school · 4–6 pm",
+      }).success,
+    ).toBe(true);
   });
 
   it("does not create a WhatsApp link for a malformed parent phone", () => {
-    expect(bookingSchema.safeParse({
-      studentName: "Aarav",
-      studentClass: "9",
-      parentPhone: "12345",
-      preferredTime: "After school · 4–6 pm",
-    }).success).toBe(false);
+    expect(
+      bookingSchema.safeParse({
+        studentName: "Aarav",
+        studentClass: "9",
+        parentPhone: "12345",
+        preferredTime: "After school · 4–6 pm",
+      }).success,
+    ).toBe(false);
   });
 
   it("encodes a validated enquiry for the requested placeholder number", () => {
