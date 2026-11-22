@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## BrightPath game structure
+- Keep campus movement and collision rules in React/Three-free `src/game/sim/` modules with colocated tests so the scene stays lightweight and the rules stay verifiable.
