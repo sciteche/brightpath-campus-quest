@@ -1,6 +1,6 @@
 import { CAMPUS_BUILDINGS } from "../content";
 
-export const CAMPUS_WALK_LIMIT = 8.55;
+export const CAMPUS_WALK_LIMIT = 9.35;
 export const PLAYER_RADIUS = 0.28;
 export const PLAYER_SPEED = 3.8;
 export const INTERACTION_RADIUS = 0.84;
@@ -83,10 +83,12 @@ export function moveCampusPlayer(
   }
 
   const stillMoving = Math.hypot(next.x - position.x, next.z - position.z) > 0.0001;
-  const reachedId = activeDestination &&
-    Math.hypot(activeDestination.x - next.x, activeDestination.z - next.z) <= AUTO_WALK_ARRIVAL_RADIUS
-    ? activeDestination.id
-    : null;
+  const reachedId =
+    activeDestination &&
+    Math.hypot(activeDestination.x - next.x, activeDestination.z - next.z) <=
+      AUTO_WALK_ARRIVAL_RADIUS
+      ? activeDestination.id
+      : null;
 
   return { position: next, moving: stillMoving, reachedId };
 }
